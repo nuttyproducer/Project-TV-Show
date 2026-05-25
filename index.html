@@ -9,7 +9,33 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <header class="banner">
+      <nav class="nav">
+        <img
+          class="nav__logo"
+          src="assets/images/benflix-logo-square.png"
+          alt="Benflix logo"
+        />
+      </nav>
+      <div class="banner__contents">
+        <img
+          class="banner__title"
+          src="assets/images/benflix-show-logo-full.png"
+          alt="Game of Thrones"
+        />
+      </div>
+    </header>
+
+    <section id="episode-list">
+      <div id="episode-cards"></div>
+    </section>
+
+    <footer>
+      <p>
+        Data originally sourced from
+        <a href="https://tvmaze.com/" target="_blank">TVMaze.com</a>
+      </p>
+    </footer>
 
     <!-- Loads a provided function called getAllEpisodes() which returns all episodes -->
     <script src="episodes.js"></script>
