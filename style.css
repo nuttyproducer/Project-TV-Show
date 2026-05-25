@@ -21,7 +21,7 @@ body {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
 }
 
-.nav__logo {
+.nav-logo {
   width: 60px;
 }
 
@@ -50,12 +50,12 @@ body {
   );
 }
 
-.banner__contents {
+.banner-contents {
   margin-left: 40px;
   z-index: 1;
 }
 
-.banner__title {
+.banner-title {
   max-width: 360px;
   display: block;
 }
