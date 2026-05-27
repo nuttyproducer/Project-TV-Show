@@ -83,26 +83,59 @@ body {
 }
 
 .banner-contents {
-  margin-left: 40px;
+  position: absolute;
+  bottom: 80px;
+  left: 40px;
   z-index: 1;
+  max-width: 50%;
 }
 
-.banner-title {
-  max-width: 360px;
-  display: block;
+.hero-title {
+  font-size: 3.5rem;
+  color: #e9e7e7;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+}
+
+.hero-series-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #e0e0e0;
+  margin-bottom: 10px;
+}
+
+.hero-series-logo {
+  height: 30px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.hero-summary {
+  font-size: 1.3rem;
+  color: #e0e0e0;
+  text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8);
+  line-height: 1.6;
 }
 
 /* Episode grid layout */
 #episode-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  padding: 20px 30px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 30px 40px;
 }
 
 .episode-card {
   background-color: #1e1e1e;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   transition: transform 300ms;
   cursor: pointer;
@@ -111,7 +144,7 @@ body {
 }
 
 .episode-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
   z-index: 1;
 }
 
@@ -120,16 +153,16 @@ body {
   display: block;
 }
 .episode-card h2 {
-  font-size: 13px;
-  padding: 10px 10px 4px;
-  min-height: 40px;
+  font-size: 15px;
+  padding: 14px 16px 8px;
+  min-height: 46px;
 }
 
 .episode-card p {
-  font-size: 11px;
-  padding: 0 10px 12px;
+  font-size: 13px;
+  padding: 8px 16px 20px;
   color: #aaa;
-  line-height: 1.4;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   line-clamp: 4;
