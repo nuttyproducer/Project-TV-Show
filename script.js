@@ -14,11 +14,19 @@ function makePageForEpisodes(episodeList) {
     const seasonCode = String(episode.season).padStart(2, "0");
     const episodeCode = String(episode.number).padStart(2, "0");
 
-    card.innerHTML = `
-      <h2>${episode.name} - S${seasonCode}E${episodeCode}</h2>
-      <img src="${episode.image.medium}" alt="${episode.name}">
-      <p>${episode.summary}</p>
-    `;
+    const title = document.createElement("h2");
+    title.textContent = `${episode.name} - S${seasonCode}E${episodeCode}`;
+
+    const image = document.createElement("img");
+    image.src = episode.image.medium;
+    image.alt = `Still image from episode: ${episode.name}`;
+
+    const summary = document.createElement("p");
+    summary.innerHTML = episode.summary; // innerHTML needed here because TVMaze returns HTML tags in the summary
+
+    card.appendChild(title);
+    card.appendChild(image);
+    card.appendChild(summary);
 
     episodeCards.appendChild(card);
   }
