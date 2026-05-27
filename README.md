@@ -1,5 +1,11 @@
 # TV Show Project
 
+<div align="center">
+
+![Benflix](assets/images/benflix-show-logo-full.png)
+
+</div>
+
 One of the most powerful things a software engineer can do is take some data and make it easy for people to understand.
 
 The aim of this project is to take some data someone else has (and exposes over an API), and display it to users. The data we're using for this project is about episodes of TV shows.
