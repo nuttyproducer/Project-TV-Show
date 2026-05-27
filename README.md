@@ -15,6 +15,7 @@ This project will take you multiple weeks to complete. As always, we will break 
 ## Goals
 
 There are three primary goals of this project:
+
 1. Get experience building a non-trivial application end-to-end.
 2. Get experience understanding, modifying, and working with code someone else wrote.
 3. Build an impressive application you can demo and show off.
@@ -22,6 +23,7 @@ There are three primary goals of this project:
 Specific learning objectives of the project:
 
 <!--{{<objectives>}}-->
+
 - [ ] Consume structured data in JavaScript using `fetch`.
 - [ ] Build UI components dynamically.
 - [ ] Update a UI dynamically in response to user input.
@@ -92,8 +94,8 @@ You are allowed to change anything in your partner's code to make it easier to u
 
 Remember, finish each level before you move on to the next. Reach out for help when you're stuck.
 
-
 ## Submission
+
 This task has 6 steps of implementation: level 0 through to level 500.
 You will **not** submit a PR to `CodeYourFuture/Project-TV-Show` until you have finished level 500.
 You will collaborate with another partner and submit pull requests to each other's repos, instructions will be given in level200 for how to do this.
@@ -114,11 +116,13 @@ If you want feedback, ask for this to be done separately.
 ### Instructions for Reviewers
 
 #### Requirements
+
 If this is your first review of the TV show project, familiarise yourself with the task requirements.
 For your convenience, you can find a list of all the requirements [here](levels/Reviewers-All-Requirements.md).
 There are no rules about how the site should look, only how it behaves.
 
 #### How to review
+
 Submission is done via a PR, like usual.
 The trainees have been working in pairs, so it is normal if you see evidence of collaboration.
 Each pair will have submitted their own final version, and these can differ so they should be reviewed independently.
