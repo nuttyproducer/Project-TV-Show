@@ -3,11 +3,44 @@
   box-sizing: border-box;
 }
 
+/* Splash intro overlay */
+#splash-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1.2s ease;
+}
+
+#splash-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#main-content {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+#main-content.fade-in {
+  opacity: 1;
+}
+
 body {
   font-family: Arial, sans-serif;
   background-color: #111;
   color: white;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 /* Navigation */

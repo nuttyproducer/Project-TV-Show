@@ -9,42 +9,82 @@
   </head>
 
   <body>
-    <header class="banner">
-      <nav class="nav">
-        <img
-          class="nav-logo"
-          src="assets/images/benflix-logo-square.png"
-          alt="Benflix logo"
-        />
-      </nav>
-      <div class="banner-contents">
-        <img
-          class="banner-title"
-          src="assets/images/benflix-show-logo-full.png"
-          alt="Game of Thrones"
-        />
-      </div>
-    </header>
+    <!-- Splash intro video overlay -->
+    <div id="splash-overlay">
+      <video
+        id="splash-video"
+        src="assets/splash-screen/splash-intro.mp4"
+        autoplay
+        playsinline
+      ></video>
+    </div>
 
-    <section id="episode-list">
-      <div id="episode-cards"></div>
-    </section>
+    <div id="main-content">
+      <header class="banner">
+        <nav class="nav">
+          <img
+            class="nav-logo"
+            src="assets/images/benflix-logo-square.png"
+            alt="Benflix logo"
+          />
+        </nav>
+        <div class="banner-contents">
+          <img
+            class="banner-title"
+            src="assets/images/benflix-show-logo-full.png"
+            alt="Game of Thrones"
+          />
+        </div>
+      </header>
 
-    <footer>
-      <p>
-        Data originally sourced from
-        <a href="https://tvmaze.com/" target="_blank">TVMaze.com</a>
-      </p>
-      <p>
-        This is a fan-made student project. Not affiliated with or endorsed by
-        Netflix, Inc. All trademarks belong to their respective owners.
-      </p>
-    </footer>
+      <section id="episode-list">
+        <div id="episode-cards"></div>
+      </section>
+
+      <footer>
+        <p>
+          Data originally sourced from
+          <a href="https://tvmaze.com/" target="_blank">TVMaze.com</a>
+        </p>
+        <p>
+          This is a fan-made student project. Not affiliated with or endorsed by
+          Netflix, Inc. All trademarks belong to their respective owners.
+        </p>
+      </footer>
+    </div>
+    <!-- end #main-content -->
 
     <!-- Loads a provided function called getAllEpisodes() which returns all episodes -->
     <script src="episodes.js"></script>
 
     <!-- Loads YOUR javascript code -->
     <script src="script.js"></script>
+
+    <script>
+      const splashVideo = document.getElementById("splash-video");
+      const splashOverlay = document.getElementById("splash-overlay");
+      const mainContent = document.getElementById("main-content");
+
+      function endSplash() {
+        splashOverlay.classList.add("fade-out");
+        mainContent.classList.add("fade-in");
+        splashOverlay.addEventListener(
+          "transitionend",
+          () => {
+            splashOverlay.style.display = "none";
+            document.body.style.overflow = "";
+          },
+          { once: true },
+        );
+      }
+
+      splashVideo.addEventListener("ended", endSplash);
+
+      // Try to play with audio; if browser blocks it, fall back to muted autoplay
+      splashVideo.play().catch(() => {
+        splashVideo.muted = true;
+        splashVideo.play().catch(endSplash);
+      });
+    </script>
   </body>
 </html>
