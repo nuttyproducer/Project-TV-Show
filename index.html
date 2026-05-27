@@ -15,6 +15,7 @@
         id="splash-video"
         src="assets/splash-screen/splash-intro.mp4"
         autoplay
+        muted
         playsinline
       ></video>
     </div>
@@ -60,31 +61,6 @@
     <!-- Loads YOUR javascript code -->
     <script src="script.js"></script>
 
-    <script>
-      const splashVideo = document.getElementById("splash-video");
-      const splashOverlay = document.getElementById("splash-overlay");
-      const mainContent = document.getElementById("main-content");
-
-      function endSplash() {
-        splashOverlay.classList.add("fade-out");
-        mainContent.classList.add("fade-in");
-        splashOverlay.addEventListener(
-          "transitionend",
-          () => {
-            splashOverlay.style.display = "none";
-            document.body.style.overflow = "";
-          },
-          { once: true },
-        );
-      }
-
-      splashVideo.addEventListener("ended", endSplash);
-
-      // Try to play with audio; if browser blocks it, fall back to muted autoplay
-      splashVideo.play().catch(() => {
-        splashVideo.muted = true;
-        splashVideo.play().catch(endSplash);
-      });
-    </script>
+    <script src="splash.js"></script>
   </body>
 </html>
