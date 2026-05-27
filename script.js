@@ -8,7 +8,7 @@ function makePageForEpisodes(episodeList) {
   episodeCards.textContent = "";
 
   for (const episode of episodeList) {
-    const card = document.createElement("div");
+    const card = document.createElement("article");
     card.className = "episode-card";
 
     const seasonCode = String(episode.season).padStart(2, "0");
