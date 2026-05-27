@@ -94,8 +94,8 @@ body {
 
 /* Episode grid layout */
 #episode-cards {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
   padding: 20px 30px;
 }
@@ -103,10 +103,11 @@ body {
 .episode-card {
   background-color: #1e1e1e;
   border-radius: 4px;
-  width: 220px;
   overflow: hidden;
   transition: transform 300ms;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
 .episode-card:hover {
@@ -121,6 +122,7 @@ body {
 .episode-card h2 {
   font-size: 13px;
   padding: 10px 10px 4px;
+  min-height: 40px;
 }
 
 .episode-card p {
