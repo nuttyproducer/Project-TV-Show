@@ -2,17 +2,19 @@
 let allEpisodes = [];
 
 function setup() {
-  // Assign data to the global variable
   allEpisodes = getAllEpisodes();
   makePageForEpisodes(allEpisodes);
 
-  // Add event listener to the search input
+  // Initialize Search
   const searchInput = document.getElementById("search-input");
+  searchInput.addEventListener("input", handleSearch);
 
-  // This check prevents errors if the element doesn't exist
-  if (searchInput) {
-    searchInput.addEventListener("input", handleSearch);
-  }
+  // Initialize Selector
+  const episodeSelector = document.getElementById("episode-selector");
+  episodeSelector.addEventListener("change", handleSelect);
+
+  // Populate the dropdown list
+  populateEpisodeSelector(allEpisodes);
 }
 
 function makePageForEpisodes(episodeList) {
@@ -44,7 +46,40 @@ function makePageForEpisodes(episodeList) {
   }
 }
 
-// Function to handle live search
+// Function to populate the dropdown menu
+function populateEpisodeSelector(episodeList) {
+  const selector = document.getElementById("episode-selector");
+
+  for (const episode of episodeList) {
+    const option = document.createElement("option");
+    option.value = episode.id;
+
+    const seasonCode = String(episode.season).padStart(2, "0");
+    const episodeCode = String(episode.number).padStart(2, "0");
+
+    option.textContent = `S${seasonCode}E${episodeCode} - ${episode.name}`;
+    selector.appendChild(option);
+  }
+}
+
+// Function to handle selection from the dropdown
+function handleSelect(event) {
+  const selectedId = event.target.value;
+
+  if (selectedId === "all") {
+    makePageForEpisodes(allEpisodes);
+  } else {
+    // Filter to find the single episode by ID
+    const selectedEpisode = allEpisodes.filter(
+      (episode) => episode.id == selectedId,
+    );
+    makePageForEpisodes(selectedEpisode);
+  }
+
+  // Clear the search input when an episode is selected
+  document.getElementById("search-input").value = "";
+}
+
 function handleSearch(event) {
   const searchTerm = event.target.value.toLowerCase();
 
@@ -53,15 +88,16 @@ function handleSearch(event) {
     const summaryMatch = episode.summary
       ? episode.summary.toLowerCase().includes(searchTerm)
       : false;
-
     return nameMatch || summaryMatch;
   });
 
   makePageForEpisodes(filteredEpisodes);
+
+  // Reset selector to "All Episodes" when searching
+  document.getElementById("episode-selector").value = "all";
 }
 
 window.onload = setup;
-
 /*
 1. All episodes must be shown
 2. For each episode, _at least_ following must be displayed:
