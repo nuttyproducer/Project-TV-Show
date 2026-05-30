@@ -192,3 +192,39 @@ footer a:hover {
   color: white;
   text-decoration: underline;
 }
+/* Added flexbox to nav to align logo and controls (PR 1) */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Added styling for the controls container (PR 1) */
+.nav-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+/* Added styling for the search input (PR 1) */
+#search-input {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+}
+
+/* Added focus state for search input (PR 1) */
+#search-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Added styling for the search count text (PR 1) */
+#search-count {
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
