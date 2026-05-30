@@ -1,6 +1,18 @@
+// Global variable to store all episodes
+let allEpisodes = [];
+
 function setup() {
-  const allEpisodes = getAllEpisodes();
+  // Assign data to the global variable
+  allEpisodes = getAllEpisodes();
   makePageForEpisodes(allEpisodes);
+
+  // Add event listener to the search input
+  const searchInput = document.getElementById("search-input");
+
+  // This check prevents errors if the element doesn't exist
+  if (searchInput) {
+    searchInput.addEventListener("input", handleSearch);
+  }
 }
 
 function makePageForEpisodes(episodeList) {
@@ -22,7 +34,7 @@ function makePageForEpisodes(episodeList) {
     image.alt = `Still image from episode: ${episode.name}`;
 
     const summary = document.createElement("p");
-    summary.innerHTML = episode.summary; // innerHTML needed here because TVMaze returns HTML tags in the summary
+    summary.innerHTML = episode.summary;
 
     card.appendChild(title);
     card.appendChild(image);
@@ -30,6 +42,22 @@ function makePageForEpisodes(episodeList) {
 
     episodeCards.appendChild(card);
   }
+}
+
+// Function to handle live search
+function handleSearch(event) {
+  const searchTerm = event.target.value.toLowerCase();
+
+  const filteredEpisodes = allEpisodes.filter((episode) => {
+    const nameMatch = episode.name.toLowerCase().includes(searchTerm);
+    const summaryMatch = episode.summary
+      ? episode.summary.toLowerCase().includes(searchTerm)
+      : false;
+
+    return nameMatch || summaryMatch;
+  });
+
+  makePageForEpisodes(filteredEpisodes);
 }
 
 window.onload = setup;
