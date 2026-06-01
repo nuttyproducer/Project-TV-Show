@@ -286,6 +286,11 @@ footer a:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Placeholder text color inside the search box */
+#search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* Added styling for the search count text (PR 1) */
 #search-count {
   color: #e0e0e0;
