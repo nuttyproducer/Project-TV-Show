@@ -29,9 +29,17 @@
             alt="Benflix logo"
           />
           <div class="nav-controls">
-            <select id="episode-selector">
-              <option value="all">All Episodes</option>
-            </select>
+            <div class="select-wrapper">
+              <select id="show-selector">
+                <option value="">Loading shows...</option>
+              </select>
+            </div>
+
+            <div class="select-wrapper">
+              <select id="episode-selector">
+                <option value="all">All Episodes</option>
+              </select>
+            </div>
 
             <input
               type="text"
@@ -75,9 +83,6 @@
       </footer>
     </div>
     <!-- end #main-content -->
-
-    <!-- Loads a provided function called getAllEpisodes() which returns all episodes -->
-    <script src="episodes.js"></script>
 
     <!-- Loads YOUR javascript code -->
     <script src="script.js"></script>

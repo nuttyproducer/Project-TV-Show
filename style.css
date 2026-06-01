@@ -206,6 +206,66 @@ footer a:hover {
   align-items: center;
 }
 
+/* Episode selector wrapper — needed for the custom CSS chevron */
+.select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  pointer-events: none;
+}
+
+#episode-selector {
+  padding: 8px 34px 8px 12px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+#episode-selector:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#episode-selector option,
+#show-selector option {
+  background: #1e1e1e;
+  color: white;
+}
+
+#show-selector {
+  padding: 8px 34px 8px 12px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+#show-selector:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* Added styling for the search input (PR 1) */
 #search-input {
   padding: 8px 12px;
