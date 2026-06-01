@@ -1,20 +1,117 @@
-// Global variable to store all episodes
+const showsUrl = "https://api.tvmaze.com/shows";
+
+// Cache to avoid fetching the same URL more than once
+const cache = {};
+
+// Global variable to store the currently loaded episodes
 let allEpisodes = [];
 
 function setup() {
-  allEpisodes = getAllEpisodes();
-  makePageForEpisodes(allEpisodes);
-
   // Initialize Search
   const searchInput = document.getElementById("search-input");
   searchInput.addEventListener("input", handleSearch);
 
-  // Initialize Selector
+  // Initialize Episode Selector
   const episodeSelector = document.getElementById("episode-selector");
   episodeSelector.addEventListener("change", handleSelect);
 
-  // Populate the dropdown list
-  populateEpisodeSelector(allEpisodes);
+  // Initialize Show Selector
+  const showSelector = document.getElementById("show-selector");
+  showSelector.addEventListener("change", handleShowSelect);
+
+  // Fetch all shows on page load
+  fetchShows();
+}
+
+function fetchShows() {
+  cachedFetch(showsUrl)
+    .then((shows) => {
+      const sorted = shows
+        .slice()
+        .sort((a, b) =>
+          a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+        );
+      populateShowSelector(sorted);
+
+      // Auto-load the first show alphabetically so the page isn't empty on arrival.
+      // We also update the dropdown value to visually reflect which show is selected.
+      if (sorted.length > 0) {
+        const showSelector = document.getElementById("show-selector");
+        showSelector.value = sorted[0].id; // Sync the dropdown to match the auto-loaded show
+        loadEpisodesForShow(sorted[0].id);
+      }
+    })
+    .catch(function () {
+      document.getElementById("episode-cards").textContent =
+        "Something went wrong while loading the show list. Please try again later.";
+    });
+}
+
+function cachedFetch(url) {
+  if (cache[url]) {
+    return Promise.resolve(cache[url]);
+  }
+  return fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      cache[url] = data;
+      return data;
+    });
+}
+
+function populateShowSelector(showList) {
+  const selector = document.getElementById("show-selector");
+  selector.textContent = "";
+
+  // Add a default placeholder option
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "-- Select a Show --";
+  defaultOption.disabled = true;
+  selector.appendChild(defaultOption);
+
+  for (const show of showList) {
+    const option = document.createElement("option");
+    option.value = show.id;
+    option.textContent = show.name;
+    selector.appendChild(option);
+  }
+}
+
+function handleShowSelect(event) {
+  const showId = event.target.value;
+  loadEpisodesForShow(showId);
+}
+
+function loadEpisodesForShow(showId) {
+  const episodesUrl = `https://api.tvmaze.com/shows/${showId}/episodes`;
+
+  // Reset search and episode selector
+  document.getElementById("search-input").value = "";
+  document.getElementById("search-count").textContent = "";
+  resetEpisodeSelector();
+
+  document.getElementById("episode-cards").textContent = "Loading episodes...";
+
+  cachedFetch(episodesUrl)
+    .then((data) => {
+      allEpisodes = data;
+      makePageForEpisodes(allEpisodes);
+      populateEpisodeSelector(allEpisodes);
+    })
+    .catch(function () {
+      document.getElementById("episode-cards").textContent =
+        "Something went wrong while loading the episodes. Please try again later.";
+    });
+}
+
+function resetEpisodeSelector() {
+  const selector = document.getElementById("episode-selector");
+  selector.textContent = "";
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "all";
+  defaultOption.textContent = "All Episodes";
+  selector.appendChild(defaultOption);
 }
 
 function makePageForEpisodes(episodeList) {
@@ -32,11 +129,13 @@ function makePageForEpisodes(episodeList) {
     title.textContent = `${episode.name} - S${seasonCode}E${episodeCode}`;
 
     const image = document.createElement("img");
-    image.src = episode.image.medium;
+    image.src = episode.image
+      ? episode.image.medium
+      : "assets/images/no-image.png";
     image.alt = `Still image from episode: ${episode.name}`;
 
     const summary = document.createElement("p");
-    summary.innerHTML = episode.summary;
+    summary.innerHTML = episode.summary || "No summary available.";
 
     card.appendChild(title);
     card.appendChild(image);
@@ -46,7 +145,7 @@ function makePageForEpisodes(episodeList) {
   }
 }
 
-// Function to populate the dropdown menu
+// Function to populate the episode dropdown menu
 function populateEpisodeSelector(episodeList) {
   const selector = document.getElementById("episode-selector");
 
@@ -62,14 +161,13 @@ function populateEpisodeSelector(episodeList) {
   }
 }
 
-// Function to handle selection from the dropdown
+// Function to handle selection from the episode dropdown
 function handleSelect(event) {
   const selectedId = event.target.value;
 
   if (selectedId === "all") {
     makePageForEpisodes(allEpisodes);
   } else {
-    // Filter to find the single episode by ID
     const selectedEpisode = allEpisodes.filter(
       (episode) => episode.id == selectedId,
     );
@@ -78,6 +176,7 @@ function handleSelect(event) {
 
   // Clear the search input when an episode is selected
   document.getElementById("search-input").value = "";
+  document.getElementById("search-count").textContent = "";
 }
 
 function handleSearch(event) {
@@ -93,21 +192,16 @@ function handleSearch(event) {
 
   makePageForEpisodes(filteredEpisodes);
 
-  // Reset selector to "All Episodes" when searching
+  // Show count of matching episodes
+  const searchCount = document.getElementById("search-count");
+  if (searchTerm.length > 0) {
+    searchCount.textContent = `${filteredEpisodes.length} / ${allEpisodes.length} episodes`;
+  } else {
+    searchCount.textContent = "";
+  }
+
+  // Reset episode selector to "All Episodes" when searching
   document.getElementById("episode-selector").value = "all";
 }
 
 window.onload = setup;
-/*
-1. All episodes must be shown
-2. For each episode, _at least_ following must be displayed:
-   1. The name of the episode
-   2. The season number eg. 02
-   3. The episode number eg. 07
-   4. The medium-sized image for the episode
-   5. The summary text of the episode
-3. Combine season number and episode number into an **episode code**:
-   1. Each part should be zero-padded to two digits.
-   2. Example: `S02E07` would be the code for the 7th episode of the 2nd season. `S2E7` would be incorrect.
-4. Your page should state somewhere that the data has (originally) come from [TVMaze.com](https://tvmaze.com/), and link back to that site (or the specific episode on that site). See [tvmaze.com/api#licensing](https://www.tvmaze.com/api#licensing).
-*/
