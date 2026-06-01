@@ -3,8 +3,14 @@ const showsUrl = "https://api.tvmaze.com/shows";
 // Cache to avoid fetching the same URL more than once
 const cache = {};
 
-// Global variable to store the currently loaded episodes
+// Stores all shows fetched from the API (used for the hero slideshow and lookups)
+let allShows = [];
+
+// Stores the episodes for the currently selected show
 let allEpisodes = [];
+
+// Keeps track of the hero slideshow interval so we can stop it when a show is picked
+let heroCycleInterval = null;
 
 function setup() {
   // Initialize Search
@@ -31,7 +37,15 @@ function fetchShows() {
         .sort((a, b) =>
           a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
         );
+
+      // Store sorted shows globally so we can look them up later
+      allShows = sorted;
+
       populateShowSelector(sorted);
+
+      // Start cycling the hero banner through the first 3 shows.
+      // This gives the page a dynamic, Netflix-style feel before the user picks anything.
+      startHeroCycle(sorted);
 
       // Auto-load the first show alphabetically so the page isn't empty on arrival.
       // We also update the dropdown value to visually reflect which show is selected.
@@ -45,6 +59,39 @@ function fetchShows() {
       document.getElementById("episode-cards").textContent =
         "Something went wrong while loading the show list. Please try again later.";
     });
+}
+
+// Cycles the hero banner through the first 3 shows every 5 seconds.
+// Stops automatically once the user manually selects a show.
+function startHeroCycle(showList) {
+  // Take only the first 3 shows for the slideshow
+  const heroShows = showList.slice(0, 3);
+  let currentIndex = 0;
+
+  // Show the first one immediately
+  updateHero(heroShows[currentIndex]);
+
+  // Then rotate every 5 seconds
+  heroCycleInterval = setInterval(function () {
+    currentIndex = (currentIndex + 1) % heroShows.length;
+    updateHero(heroShows[currentIndex]);
+  }, 5000);
+}
+
+// Updates the hero banner (background image, title, summary) to match the given show.
+function updateHero(show) {
+  // Update the background image on the banner
+  const banner = document.querySelector(".banner");
+  if (show.image) {
+    banner.style.backgroundImage = `url(${show.image.original})`;
+  }
+
+  // Update the title text
+  document.querySelector(".hero-title").textContent = show.name;
+
+  // Update the summary — summary comes from the API with HTML tags inside, so innerHTML is needed
+  document.querySelector(".hero-summary").innerHTML =
+    show.summary || "No summary available.";
 }
 
 function cachedFetch(url) {
@@ -80,6 +127,16 @@ function populateShowSelector(showList) {
 
 function handleShowSelect(event) {
   const showId = event.target.value;
+
+  // Stop the hero slideshow — the user has made their choice
+  clearInterval(heroCycleInterval);
+
+  // Update the hero banner to show the selected show
+  const selectedShow = allShows.find((show) => show.id == showId);
+  if (selectedShow) {
+    updateHero(selectedShow);
+  }
+
   loadEpisodesForShow(showId);
 }
 
