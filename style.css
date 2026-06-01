@@ -67,6 +67,8 @@ body {
   display: flex;
   align-items: flex-end;
   padding-bottom: 80px;
+  /* Smooth crossfade when the background image changes */
+  transition: background-image 0.8s ease;
 }
 
 .banner::after {
@@ -88,6 +90,8 @@ body {
   left: 40px;
   z-index: 1;
   max-width: 50%;
+  /* Fade the text content in and out when the hero cycles */
+  transition: opacity 0.6s ease;
 }
 
 .hero-title {

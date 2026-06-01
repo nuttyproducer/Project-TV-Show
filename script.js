@@ -61,37 +61,48 @@ function fetchShows() {
     });
 }
 
-// Cycles the hero banner through the first 3 shows every 5 seconds.
+// Cycles the hero banner through the first 5 shows every 5 seconds.
 // Stops automatically once the user manually selects a show.
 function startHeroCycle(showList) {
-  // Take only the first 3 shows for the slideshow
-  const heroShows = showList.slice(0, 3);
+  // Take only the first 5 shows for the slideshow
+  const heroShows = showList.slice(0, 5);
   let currentIndex = 0;
 
   // Show the first one immediately
   updateHero(heroShows[currentIndex]);
 
-  // Then rotate every 5 seconds
+  // Then rotate every 8 seconds
   heroCycleInterval = setInterval(function () {
     currentIndex = (currentIndex + 1) % heroShows.length;
     updateHero(heroShows[currentIndex]);
-  }, 5000);
+  }, 8000);
 }
 
 // Updates the hero banner (background image, title, summary) to match the given show.
 function updateHero(show) {
-  // Update the background image on the banner
   const banner = document.querySelector(".banner");
-  if (show.image) {
-    banner.style.backgroundImage = `url(${show.image.original})`;
-  }
+  const bannerContents = document.querySelector(".banner-contents");
 
-  // Update the title text
-  document.querySelector(".hero-title").textContent = show.name;
+  // Step 1: fade the text out
+  bannerContents.style.opacity = "0";
 
-  // Update the summary — summary comes from the API with HTML tags inside, so innerHTML is needed
-  document.querySelector(".hero-summary").innerHTML =
-    show.summary || "No summary available.";
+  // Step 2: after the fade-out completes (0.6s), swap all the content
+  setTimeout(function () {
+    // Swap the background image
+    if (show.image) {
+      banner.style.backgroundImage = `url(${show.image.original})`;
+    }
+
+    // Swap the title
+    document.querySelector(".hero-title").textContent = show.name;
+
+    // Swap the summary — uses innerHTML because TVMaze wraps summaries in <p> tags
+    document.querySelector(".hero-summary").innerHTML =
+      show.summary || "No summary available.";
+
+    // Step 3: fade the text back in
+    bannerContents.style.opacity = "1";
+  }, 600);
 }
 
 function cachedFetch(url) {
