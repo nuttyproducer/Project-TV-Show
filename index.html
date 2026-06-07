@@ -25,21 +25,9 @@
         <nav class="nav">
           <img
             class="nav-logo"
-            src="assets/images/benflix-logo-square.png"
-            alt="Benflix logo"
+            src="assets/images/benflix-show-logo-full.png"
+            alt="Benflix"
           />
-          <div class="nav-controls">
-            <select id="episode-selector">
-              <option value="all">All Episodes</option>
-            </select>
-
-            <input
-              type="text"
-              id="search-input"
-              placeholder="Search episodes..."
-            />
-            <span id="search-count"></span>
-          </div>
         </nav>
         <div class="banner-contents">
           <p class="hero-series-label">
@@ -56,6 +44,24 @@
             while an ancient enemy rises from beyond a mystical wall in the far
             north.
           </p>
+        </div>
+
+        <div class="banner-controls">
+          <div class="control-group">
+            <label for="show-selector">Show:</label>
+            <select id="show-selector">
+              <option value="">Loading shows...</option>
+            </select>
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search Episodes..."
+          />
+          <select id="episode-selector">
+            <option value="all">Select an episode...</option>
+          </select>
+          <span id="search-count"></span>
         </div>
       </header>
 
