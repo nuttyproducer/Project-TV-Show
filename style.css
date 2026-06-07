@@ -51,10 +51,14 @@ body {
   padding: 20px 30px;
   z-index: 2;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .nav-logo {
-  width: 60px;
+  height: 40px;
+  width: auto;
 }
 
 /* Banner - first episode as hero image - Will change this with JS to always show the first episode, but this mockup is fine! */
@@ -88,6 +92,31 @@ body {
   left: 40px;
   z-index: 1;
   max-width: 50%;
+}
+
+.banner-controls {
+  position: absolute;
+  bottom: 30px;
+  left: 40px;
+  right: 40px;
+  z-index: 1;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-group label {
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .hero-title {
@@ -161,10 +190,7 @@ body {
 
 .episode-card p {
   font-size: 13px;
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 8px;
-  padding-bottom: 20px;
+  padding: 8px 8px 20px;
   color: #aaa;
   line-height: 1.6;
   flex-grow: 1;
@@ -192,39 +218,50 @@ footer a:hover {
   color: white;
   text-decoration: underline;
 }
-/* Added flexbox to nav to align logo and controls (PR 1) */
-.nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
-/* Added styling for the controls container (PR 1) */
-.nav-controls {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-/* Added styling for the search input (PR 1) */
-#search-input {
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 1rem;
-}
-
-/* Added focus state for search input (PR 1) */
-#search-input:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Added styling for the search count text (PR 1) */
 #search-count {
   color: #e0e0e0;
   font-size: 0.9rem;
   font-weight: bold;
+  position: absolute;
+  bottom: 5px;
+  right: 40px;
+}
+
+#show-selector,
+#episode-selector,
+#search-input {
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 1rem;
+  height: 42px;
+  min-width: 180px;
+}
+
+#search-input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 500px;
+}
+
+#show-selector,
+#episode-selector {
+  cursor: pointer;
+}
+
+#show-selector option,
+#episode-selector option {
+  background: #111;
+  color: white;
+  padding: 10px;
+}
+
+#show-selector:focus,
+#episode-selector:focus,
+#search-input:focus {
+  outline: none;
+  background: rgba(0, 0, 0, 0.7);
 }
