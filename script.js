@@ -48,6 +48,8 @@ function fetchShows() {
         a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
       );
       populateShowSelector(allShows);
+      // Start rotating random shows in the hero section
+      startHeroRotation();
     })
     .catch(() => {
       document.getElementById("episode-cards").textContent =
@@ -130,8 +132,13 @@ function handleShowChange(event) {
 
   if (showId === "") {
     document.getElementById("episode-cards").textContent = "Select a show to begin";
+    // Resume hero rotation when no show is selected
+    startHeroRotation();
     return;
   }
+
+  // Stop auto-rotation when user picks a specific show
+  stopHeroRotation();
 
   currentShowId = parseInt(showId, 10);
 
@@ -148,9 +155,50 @@ function updateBanner(showId) {
   const show = allShows.find((s) => s.id === showId);
   if (!show) return;
 
-  document.querySelector(".hero-title").textContent = show.name;
-  document.querySelector(".hero-summary").innerHTML =
-    show.summary || "No summary available.";
+  const banner = document.querySelector(".banner");
+  const heroTitle = document.querySelector(".hero-title");
+  const heroSummary = document.querySelector(".hero-summary");
+
+  // Update title and summary
+  heroTitle.textContent = show.name;
+  heroSummary.innerHTML = show.summary || "No summary available.";
+
+  // Update hero background image from the show's API data
+  if (show.image && show.image.original) {
+    banner.style.backgroundImage = `url("${show.image.original}")`;
+  } else {
+    // Fallback gradient for shows without an image
+    banner.style.backgroundImage =
+      "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)";
+  }
+}
+
+// ─── Hero Rotation ────────────────────────────────────────────────────────────
+
+let heroRotationInterval = null;
+
+function startHeroRotation() {
+  // Don't start a second interval if already running
+  if (heroRotationInterval) return;
+
+  function pickRandomShow() {
+    if (allShows.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * allShows.length);
+    const show = allShows[randomIndex];
+    updateBanner(show.id);
+  }
+
+  // Show the first random show immediately
+  pickRandomShow();
+  // Then rotate to a new random show every 8 seconds
+  heroRotationInterval = setInterval(pickRandomShow, 8000);
+}
+
+function stopHeroRotation() {
+  if (heroRotationInterval) {
+    clearInterval(heroRotationInterval);
+    heroRotationInterval = null;
+  }
 }
 
 // ─── Episode Selector ─────────────────────────────────────────────────────────
