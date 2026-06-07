@@ -61,16 +61,16 @@ body {
   width: auto;
 }
 
-/* Banner - first episode as hero image - Will change this with JS to always show the first episode, but this mockup is fine! */
+/* Hero banner — background image set dynamically by script.js */
 .banner {
   position: relative;
   height: 95vh;
-  background-image: url("http://static.tvmaze.com/uploads/images/original_untouched/1/2668.jpg");
   background-size: cover;
   background-position: center top;
   display: flex;
   align-items: flex-end;
   padding-bottom: 80px;
+  transition: background 1s ease;
 }
 
 .banner::after {
