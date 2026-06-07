@@ -1,12 +1,18 @@
-// TVMaze API endpoint for Game of Thrones episodes
-const url = "https://api.tvmaze.com/shows/82/episodes";
+// Cache for API responses — never fetch the same URL twice
+const cache = {};
 
-// Stores all fetched episodes so we never need to re-fetch during the same visit
+// Current state
+let allShows = [];
+let currentShowId = null;
 let allEpisodes = [];
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
 
 function setup() {
+  // Wire up the show selector dropdown
+  const showSelector = document.getElementById("show-selector");
+  showSelector.addEventListener("change", handleShowChange);
+
   // Wire up the live search input
   const searchInput = document.getElementById("search-input");
   searchInput.addEventListener("input", handleSearch);
@@ -15,30 +21,55 @@ function setup() {
   const episodeSelector = document.getElementById("episode-selector");
   episodeSelector.addEventListener("change", handleSelect);
 
-  // Kick off the API fetch
-  fetchEpisodes();
+  // Kick off the API fetch for shows
+  fetchShows();
 }
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-function fetchEpisodes() {
-  // Show a loading message so the user knows something is happening
+function fetchWithCache(url) {
+  if (cache[url]) {
+    return Promise.resolve(cache[url]);
+  }
+  return fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      cache[url] = data;
+      return data;
+    });
+}
+
+function fetchShows() {
+  document.getElementById("episode-cards").textContent = "Loading shows...";
+
+  fetchWithCache("https://api.tvmaze.com/shows")
+    .then((shows) => {
+      allShows = shows.sort((a, b) =>
+        a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+      );
+      populateShowSelector(allShows);
+    })
+    .catch(() => {
+      document.getElementById("episode-cards").textContent =
+        "Failed to load shows. Please try again later.";
+    });
+}
+
+function fetchEpisodes(showId) {
   document.getElementById("episode-cards").textContent = "Loading episodes...";
 
-  fetch(url)
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (data) {
-      // Store episodes globally — this is the only time we fetch
-      allEpisodes = data;
+  const url = `https://api.tvmaze.com/shows/${showId}/episodes`;
+
+  fetchWithCache(url)
+    .then((episodes) => {
+      allEpisodes = episodes;
       makePageForEpisodes(allEpisodes);
       populateEpisodeSelector(allEpisodes);
+      updateBanner(showId);
     })
-    .catch(function () {
-      // Show a visible error message — console.log is not enough for real users
+    .catch(() => {
       document.getElementById("episode-cards").textContent =
-        "Something went wrong while loading the episodes. Please try again later.";
+        "Failed to load episodes. Please try again later.";
     });
 }
 
@@ -75,11 +106,63 @@ function makePageForEpisodes(episodeList) {
   }
 }
 
+// ─── Show Selector ───────────────────────────────────────────────────────────
+
+function populateShowSelector(shows) {
+  const selector = document.getElementById("show-selector");
+  selector.textContent = "";
+
+  const emptyOption = document.createElement("option");
+  emptyOption.value = "";
+  emptyOption.textContent = "Select a show...";
+  selector.appendChild(emptyOption);
+
+  for (const show of shows) {
+    const option = document.createElement("option");
+    option.value = show.id;
+    option.textContent = show.name;
+    selector.appendChild(option);
+  }
+}
+
+function handleShowChange(event) {
+  const showId = event.target.value;
+
+  if (showId === "") {
+    document.getElementById("episode-cards").textContent = "Select a show to begin";
+    return;
+  }
+
+  currentShowId = parseInt(showId, 10);
+
+  // Clear episode selector and search when changing shows
+  document.getElementById("episode-selector").value = "all";
+  document.getElementById("search-input").value = "";
+  document.getElementById("search-count").textContent = "";
+
+  // Fetch episodes for the selected show
+  fetchEpisodes(currentShowId);
+}
+
+function updateBanner(showId) {
+  const show = allShows.find((s) => s.id === showId);
+  if (!show) return;
+
+  document.querySelector(".hero-title").textContent = show.name;
+  document.querySelector(".hero-summary").innerHTML =
+    show.summary || "No summary available.";
+}
+
 // ─── Episode Selector ─────────────────────────────────────────────────────────
 
 // Populates the episode dropdown with one option per episode
 function populateEpisodeSelector(episodeList) {
   const selector = document.getElementById("episode-selector");
+
+  // Remove all options except the first one ("All Episodes")
+  while (selector.options.length > 1) {
+    selector.remove(1);
+  }
 
   for (const episode of episodeList) {
     const option = document.createElement("option");
