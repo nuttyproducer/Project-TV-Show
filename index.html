@@ -21,53 +21,85 @@
     </div>
 
     <div id="main-content">
-      <header class="banner">
-        <nav class="nav">
-          <img
-            class="nav-logo"
-            src="assets/images/benflix-show-logo-full.png"
-            alt="Benflix"
-          />
-        </nav>
-        <div class="banner-contents">
-          <p class="hero-series-label">
+      <!-- ─── SHOWS VIEW ─────────────────────────────────────────────── -->
+      <main id="shows-view" class="view">
+        <section class="hero" id="hero">
+          <div class="hero-bg" id="hero-bg"></div>
+          <div class="hero-scrim"></div>
+
+          <nav class="top-nav">
             <img
-              class="hero-series-logo"
-              src="assets/images/benflix-logo-square.png"
+              class="nav-logo"
+              src="assets/images/benflix-show-logo-full.png"
               alt="Benflix"
             />
-            SERIES
-          </p>
-          <h1 class="hero-title">Game of Thrones</h1>
-          <p class="hero-summary">
-            Nine noble families fight for control over the lands of Westeros,
-            while an ancient enemy rises from beyond a mystical wall in the far
-            north.
-          </p>
-        </div>
+          </nav>
 
-        <div class="banner-controls">
-          <div class="control-group">
-            <label for="show-selector">Show:</label>
-            <select id="show-selector">
-              <option value="">Loading shows...</option>
-            </select>
+          <div class="hero-contents" id="hero-contents">
+            <p class="hero-series-label">
+              <img
+                class="hero-series-logo"
+                src="assets/images/benflix-logo-square.png"
+                alt="Benflix"
+              />
+              SERIES
+            </p>
+            <h1 class="hero-title" id="hero-title">Loading...</h1>
+            <p class="hero-summary" id="hero-summary"></p>
           </div>
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Search Episodes..."
-          />
-          <select id="episode-selector">
-            <option value="all">Select an episode...</option>
-          </select>
-          <span id="search-count"></span>
-        </div>
-      </header>
+        </section>
 
-      <section id="episode-list">
-        <div id="episode-cards"></div>
-      </section>
+        <nav class="page-nav shows-nav">
+          <div class="page-nav-left"></div>
+          <div class="page-nav-right">
+            <select id="shows-sort" class="nav-select">
+              <option value="alpha">Sort: A–Z</option>
+              <option value="rating">Sort: Highest rated</option>
+            </select>
+            <input
+              type="search"
+              id="shows-search"
+              class="nav-input"
+              placeholder="Search shows by name, genre, or summary..."
+            />
+          </div>
+        </nav>
+
+        <section id="genre-rows" class="genre-rows"></section>
+
+        <section id="shows-flat" class="shows-flat hidden">
+          <div id="shows-grid"></div>
+        </section>
+      </main>
+
+      <!-- ─── EPISODES VIEW ─────────────────────────────────────────── -->
+      <main id="episodes-view" class="view hidden">
+        <nav class="page-nav episodes-nav">
+          <div class="page-nav-left">
+            <button type="button" id="back-to-shows" class="nav-button">
+              ← Back to shows
+            </button>
+          </div>
+          <div class="page-nav-right">
+            <select id="episode-selector" class="nav-select">
+              <option value="all">Jump to episode...</option>
+            </select>
+            <input
+              type="search"
+              id="search-input"
+              class="nav-input"
+              placeholder="Search show and summary..."
+            />
+            <span id="search-count" class="nav-count"></span>
+          </div>
+        </nav>
+
+        <header class="episodes-header" id="episodes-header"></header>
+
+        <section id="episode-list">
+          <div id="episode-cards"></div>
+        </section>
+      </main>
 
       <footer>
         <p>
