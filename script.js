@@ -29,6 +29,7 @@ const genreBuckets = [
 function setup() {
   // Shows page — search box and sort dropdown
   document.getElementById("shows-search").addEventListener("input", handleShowsSearch);
+  document.getElementById("shows-sort").addEventListener("change", renderGenreRows);
 
   // Episodes page — back button, search box, and jump-to-episode dropdown
   document.getElementById("back-to-shows").addEventListener("click", showShowsView);
@@ -181,10 +182,21 @@ function showEpisodesView() {
 
 // --- SHOWS PAGE ---
 
-// Sort the shows A-Z so the list stays easy to scan.
+// Sort the shows either A-Z or by rating, depending on what the user picked in the dropdown.
 function sortShows(shows) {
+  const sortChoice = document.getElementById("shows-sort").value;
   const sorted = shows.slice(); // copy first so I don't change the original
-  sorted.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+  if (sortChoice === "rating") {
+    sorted.sort((a, b) => {
+      const ratingA = a.rating && a.rating.average ? a.rating.average : 0;
+      const ratingB = b.rating && b.rating.average ? b.rating.average : 0;
+      return ratingB - ratingA;
+    });
+  } else {
+    sorted.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+  }
+
   return sorted;
 }
 
@@ -419,7 +431,7 @@ function handleEpisodeJump(event) {
   }
 }
 
-// Filter episodes as the user types in the search box. 
+// Filter episodes as the user types in the search box.
 function handleEpisodeSearch(event) {
   const term = event.target.value.toLowerCase();
 
