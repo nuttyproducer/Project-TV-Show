@@ -17,7 +17,15 @@
         autoplay
         muted
         playsinline
+        aria-label="Benflix intro video"
       ></video>
+      <track
+        kind="captions"
+        src="assets/splash-screen/splash-intro.vtt"
+        srclang="en"
+        label="English"
+        default
+      />
     </div>
 
     <div id="main-content">
@@ -52,9 +60,11 @@
         <nav class="page-nav shows-nav">
           <div class="page-nav-left"></div>
           <div class="page-nav-right">
+            <label class="sr-only" for="shows-sort">Sort shows</label>
             <select id="shows-sort" class="nav-select">
               <option value="alpha">Sort: A–Z</option>
             </select>
+            <label class="sr-only" for="shows-search">Search shows</label>
             <input
               type="search"
               id="shows-search"
@@ -80,9 +90,11 @@
             </button>
           </div>
           <div class="page-nav-right">
+            <label class="sr-only" for="episode-selector">Jump to episode</label>
             <select id="episode-selector" class="nav-select">
               <option value="all">Jump to episode...</option>
             </select>
+            <label class="sr-only" for="search-input">Search episodes</label>
             <input
               type="search"
               id="search-input"

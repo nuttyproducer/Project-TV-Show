@@ -43,7 +43,7 @@ function setup() {
 window.onload = setup;
 
 
-// --- FETCHING DATA ---
+// FETCHING DATA
 
 // I made this helper so I never fetch the same URL twice.
 // If we already have the data saved in cache, just use that instead.
@@ -91,7 +91,7 @@ function fetchEpisodes(showId) {
 }
 
 
-// --- HERO BANNER (the big rotating image at the top) ---
+// HERO BANNER (the big rotating image at the top) 
 
 // I store the timer here so I can stop it later when the user navigates away.
 let heroTimer = null;
@@ -163,7 +163,7 @@ function switchHero(show) {
 }
 
 
-// --- SWITCHING BETWEEN PAGES ---
+// SWITCHING BETWEEN PAGES
 
 function showShowsView() {
   document.getElementById("episodes-view").classList.add("hidden");
@@ -180,7 +180,7 @@ function showEpisodesView() {
 }
 
 
-// --- SHOWS PAGE ---
+// SHOWS PAGE
 
 // Sort the shows either A-Z or by rating, depending on what the user picked in the dropdown.
 function sortShows(shows) {
@@ -284,10 +284,10 @@ function createShowCard(show) {
     meta.appendChild(status);
   }
 
-  const summary = document.createElement("p");
-  summary.className = "show-card-summary";
-  // I use innerHTML here on purpose — TVMaze summaries already contain HTML tags like <p>
-  summary.innerHTML = show.summary || "No summary available.";
+    const summary = document.createElement("p");
+    summary.className = "show-card-summary";
+    // I use innerHTML here on purpose — TVMaze summaries already contain HTML tags like <p>
+    summary.innerHTML = show.summary || "No summary available.";
 
   body.appendChild(title);
   body.appendChild(meta);
@@ -352,7 +352,7 @@ function handleShowsSearch(event) {
 }
 
 
-// --- EPISODES PAGE ---
+// EPISODES PAGE
 
 function renderEpisodes(episodes) {
   const container = document.getElementById("episode-cards");
@@ -377,7 +377,11 @@ function renderEpisodes(episodes) {
     title.textContent = `${episode.name} - S${seasonCode}E${episodeCode}`;
 
     const image = document.createElement("img");
-    image.src = episode.image ? episode.image.medium : "assets/images/no-image.png";
+    let imageSrc = "assets/images/no-image.png";
+    if (episode.image) {
+      imageSrc = episode.image.medium;
+    }
+    image.src = imageSrc;
     image.alt = `Still image from episode: ${episode.name}`;
 
     const summary = document.createElement("p");
@@ -437,9 +441,12 @@ function handleEpisodeSearch(event) {
 
   const matches = allEpisodes.filter((episode) => {
     const nameHit = episode.name.toLowerCase().includes(term);
-    const summaryHit = episode.summary
-      ? episode.summary.toLowerCase().includes(term)
-      : false;
+    let summaryHit;
+    if (episode.summary) {
+      summaryHit = episode.summary.toLowerCase().includes(term);
+    } else {
+      summaryHit = false;
+    }
     return nameHit || summaryHit;
   });
 
