@@ -35,6 +35,13 @@ function setup() {
   document.getElementById("back-to-shows").addEventListener("click", showShowsView);
   document.getElementById("search-input").addEventListener("input", handleEpisodeSearch);
   document.getElementById("episode-selector").addEventListener("change", handleEpisodeJump);
+  document.getElementById("episodes-season-select").addEventListener("change", applyEpisodeFilters);
+  document.getElementById("episodes-load-more-btn").addEventListener("click", function () {
+    var filtered = getFilteredEpisodes();
+    if (episodesVisible < filtered.length) {
+      loadNextBatch(filtered);
+    }
+  });
 
   // Kick everything off by fetching all the shows
   fetchShows();
@@ -80,9 +87,9 @@ function fetchEpisodes(showId) {
   fetchWithCache(url)
     .then((episodes) => {
       allEpisodes = episodes;
-      renderEpisodes(allEpisodes);
-      fillEpisodeSelector(allEpisodes);
-      updateEpisodeCount(allEpisodes.length, allEpisodes.length);
+      buildSeasonSelector(episodes);
+      fillEpisodeSelector(episodes);
+      applyEpisodeFilters();
     })
     .catch(() => {
       cardsBox.innerHTML =
@@ -166,6 +173,7 @@ function switchHero(show) {
 // --- SWITCHING BETWEEN PAGES ---
 
 function showShowsView() {
+  if (loadMoreObserver) loadMoreObserver.disconnect();
   document.getElementById("episodes-view").classList.add("hidden");
   document.getElementById("shows-view").classList.remove("hidden");
   startHeroRotation();
@@ -245,7 +253,7 @@ function renderGenreRows() {
   }
 }
 
-// Build one show card. Clicking it opens that show's episodes.
+// Build one show card. Clicking it opens a detail modal for that show.
 function createShowCard(show) {
   const card = document.createElement("article");
   card.className = "show-card";
@@ -295,17 +303,273 @@ function createShowCard(show) {
   card.appendChild(image);
   card.appendChild(body);
 
+  // Click → open the episodes page for this show
   card.addEventListener("click", () => openShow(show));
+
+  // Hover → open trailer popup after a short delay.
+  // Kicks off the YouTube API fetch immediately so the iframe is already
+  // buffering by the time the popup appears.
+  let hoverTimer = null;
+
+  card.addEventListener("mouseenter", function () {
+    var cardEl = card;
+    // Start fetching the trailer ID right away — don't wait for the timer.
+    // If it's in the cache this returns instantly; otherwise the API call
+    // runs in parallel with the 600ms delay.
+    preloadTrailerForShow(show);
+
+    hoverTimer = setTimeout(function () {
+      openTrailerPopup(show, cardEl);
+    }, 600);
+  });
+
+  card.addEventListener("mouseleave", () => {
+    clearTimeout(hoverTimer);
+    hoverTimer = null;
+    scheduleTrailerPopupClose();
+  });
 
   return card;
 }
 
+// ─── TRAILER HOVER POPUP ─────────────────────────────────────────────
+
+// A floating popup that shows a YouTube trailer when you hover over a show card.
+// It uses the YouTube Data API v3 to find the right trailer, then embeds it directly.
+// Results are cached so each show is searched only once per session.
+const trailerCache = {};        // key = show name, value = YouTube video ID (or null)
+let trailerPopupShow = null;   // which show the popup is currently showing
+let trailerCloseTimer = null;  // timer for delayed close
+
+// Search YouTube Data API v3 for one trailer matching this show.
+// Returns a videoId string, or null if nothing was found.
+function fetchTrailerId(showName) {
+  // Return the cached result instantly (even if it was null — no trailer exists)
+  if (showName in trailerCache) {
+    return Promise.resolve(trailerCache[showName]);
+  }
+
+  const query = encodeURIComponent(showName + " official trailer");
+  const url =
+    "https://www.googleapis.com/youtube/v3/search" +
+    "?part=snippet" +
+    "&maxResults=1" +
+    "&q=" + query +
+    "&type=video" +
+    "&videoEmbeddable=true" +
+    "&videoDefinition=high" +
+    "&key=" + YOUTUBE_API_KEY;
+
+  return fetch(url)
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var videoId;
+      if (data.items && data.items[0]) {
+        videoId = data.items[0].id.videoId;
+      } else {
+        videoId = null;
+      }
+      trailerCache[showName] = videoId;
+      return videoId;
+    })
+    .catch(function () {
+      trailerCache[showName] = null;
+      return null;
+    });
+}
+
+// Build the embed URL for a known video ID.
+// Sound ON — the user just hovered, so the browser allows unmuted autoplay.
+function getEmbedUrl(videoId) {
+  return (
+    "https://www.youtube-nocookie.com/embed/" + videoId +
+    "?autoplay=1" +
+    "&mute=0" +
+    "&controls=0" +
+    "&modestbranding=1" +
+    "&rel=0" +
+    "&enablejsapi=1"
+  );
+}
+
+// Kick off the API fetch + iframe preload the moment the user hovers a card.
+// Runs in parallel with the 600ms delay — by the time the popup opens,
+// the iframe is already buffering the video.
+function preloadTrailerForShow(show) {
+  fetchTrailerId(show.name).then(function (videoId) {
+    if (!videoId) return;
+    // Only preload if this is still the show we care about
+    // (trailerPopupShow is null during the preload phase)
+    var popup = document.getElementById("trailer-popup");
+    if (!popup) return;
+    var iframe = popup.querySelector(".trailer-popup-iframe");
+    // If the iframe is empty or showing a different video, start loading this one
+    if (!iframe.src || trailerPopupShow === null || trailerPopupShow === show) {
+      iframe.src = getEmbedUrl(videoId);
+    }
+  });
+}
+
+// Create the popup DOM once and reuse it.
+// Layout: left = 16:9 trailer, right = show title + summary + button.
+function getTrailerPopup() {
+  var popup = document.getElementById("trailer-popup");
+  if (popup) return popup;
+
+  popup = document.createElement("div");
+  popup.id = "trailer-popup";
+  popup.className = "trailer-popup";
+
+  // Left column — the trailer
+  var left = document.createElement("div");
+  left.className = "trailer-popup-left";
+
+  var videoBox = document.createElement("div");
+  videoBox.className = "trailer-popup-video-box";
+
+  var iframe = document.createElement("iframe");
+  iframe.className = "trailer-popup-iframe";
+  iframe.setAttribute("allow", "autoplay; encrypted-media");
+  iframe.setAttribute("allowfullscreen", "");
+  videoBox.appendChild(iframe);
+  left.appendChild(videoBox);
+
+  // Right column — show info
+  var right = document.createElement("div");
+  right.className = "trailer-popup-right";
+
+  var title = document.createElement("h2");
+  title.className = "trailer-popup-title";
+  right.appendChild(title);
+
+  var summary = document.createElement("div");
+  summary.className = "trailer-popup-summary";
+  right.appendChild(summary);
+
+  var episodesBtn = document.createElement("button");
+  episodesBtn.className = "trailer-popup-episodes-btn";
+  episodesBtn.textContent = "▶ View Episodes";
+  episodesBtn.addEventListener("click", function () {
+    if (trailerPopupShow) {
+      var showToOpen = trailerPopupShow;
+      closeTrailerPopup();
+      openShow(showToOpen);
+    }
+  });
+  right.appendChild(episodesBtn);
+
+  popup.appendChild(left);
+  popup.appendChild(right);
+
+  // Keep the popup open while the mouse is over it
+  popup.addEventListener("mouseenter", function () {
+    clearTimeout(trailerCloseTimer);
+  });
+  popup.addEventListener("mouseleave", function () {
+    closeTrailerPopup();
+  });
+
+  document.body.appendChild(popup);
+  return popup;
+}
+
+// Position the popup next to the card and start loading the trailer.
+function openTrailerPopup(show, card) {
+  clearTimeout(trailerCloseTimer);
+
+  // If it's the same show already showing, just keep it open
+  if (trailerPopupShow === show) return;
+
+  trailerPopupShow = show;
+
+  var popup = getTrailerPopup();
+  var iframe = popup.querySelector(".trailer-popup-iframe");
+
+  // Fill in the show info on the right side
+  popup.querySelector(".trailer-popup-title").textContent = show.name;
+  popup.querySelector(".trailer-popup-summary").innerHTML =
+    show.summary || "<p>No summary available.</p>";
+
+  // Measure the popup so we can position it without clipping
+  // (it's currently hidden, so we briefly make it visible to measure)
+  popup.classList.add("is-open");
+  var popupRect = popup.getBoundingClientRect();
+  var popupWidth = popupRect.width || 1100;
+  var popupHeight = popupRect.height || 470;
+  popup.classList.remove("is-open");
+
+  var cardRect = card.getBoundingClientRect();
+
+  var left = cardRect.right + 20;
+  var top = cardRect.top;
+
+  // Flip to the left if it would go off-screen
+  if (left + popupWidth > window.innerWidth - 20) {
+    left = cardRect.left - popupWidth - 20;
+  }
+  // If still off-screen (narrow viewport), centre it
+  if (left < 20) {
+    left = Math.max(20, (window.innerWidth - popupWidth) / 2);
+  }
+
+  // Keep it vertically within the viewport
+  if (top + popupHeight > window.innerHeight - 20) {
+    top = window.innerHeight - popupHeight - 20;
+  }
+  if (top < 20) top = 20;
+
+  popup.style.left = left + "px";
+  popup.style.top = top + "px";
+
+  popup.classList.add("is-open");
+
+  // The iframe might already have the right src from preloadTrailerForShow().
+  // Check: does it already contain the cached videoId for this show?
+  var cachedId = trailerCache[show.name];
+  if (cachedId) {
+    // Already cached — use it now (preload might have set it already)
+    var expectedSrc = getEmbedUrl(cachedId);
+    if (iframe.src !== expectedSrc) {
+      iframe.src = expectedSrc;
+    }
+    // else: preload already set the right src — leave it playing
+  } else {
+    // Not cached yet — clear the old one, then fetch
+    iframe.src = "";
+    fetchTrailerId(show.name).then(function (videoId) {
+      if (trailerPopupShow !== show) return;
+      if (videoId) {
+        iframe.src = getEmbedUrl(videoId);
+      }
+    });
+  }
+}
+
+function scheduleTrailerPopupClose() {
+  // Small delay before closing, so the user can reach the popup itself
+  trailerCloseTimer = setTimeout(function () {
+    closeTrailerPopup();
+  }, 200);
+}
+
+function closeTrailerPopup() {
+  var popup = document.getElementById("trailer-popup");
+  if (!popup) return;
+  popup.classList.remove("is-open");
+  trailerPopupShow = null;
+
+  // Pause the video by clearing the src
+  var iframe = popup.querySelector(".trailer-popup-iframe");
+  if (iframe) iframe.src = "";
+}
+
 function openShow(show) {
   // Reset the episodes page before showing it
-  document.getElementById("episodes-header").innerHTML = `<h2>${show.name}</h2>`;
+  document.getElementById("episodes-show-title").textContent = show.name;
   document.getElementById("search-input").value = "";
   document.getElementById("episode-selector").value = "all";
   document.getElementById("search-count").textContent = "";
+  document.getElementById("episodes-load-more-box").classList.add("hidden");
 
   showEpisodesView();
   fetchEpisodes(show.id);
@@ -354,33 +618,146 @@ function handleShowsSearch(event) {
 
 // --- EPISODES PAGE ---
 
+// Load-more state — how many episodes are currently visible
+var episodesVisible = 0;
+var EPISODES_PER_BATCH = 20;
+var episodesLoading = false; // guard against double-loads
+
+// IntersectionObserver — auto-loads the next batch when the button scrolls into view.
+var loadMoreObserver = null;
+
+function setupLoadMoreObserver() {
+  if (loadMoreObserver) loadMoreObserver.disconnect();
+  var loadBox = document.getElementById("episodes-load-more-box");
+  loadMoreObserver = new IntersectionObserver(function (entries) {
+    if (entries[0].isIntersecting && !episodesLoading) {
+      var filtered = getFilteredEpisodes();
+      if (episodesVisible < filtered.length) {
+        loadNextBatch(filtered);
+      }
+    }
+  }, { rootMargin: "200px" });
+  loadMoreObserver.observe(loadBox);
+}
+
+// Called once after episodes load to set up the observer.
+function initLoadMore() {
+  setupLoadMoreObserver();
+}
+
+// Trigger a load — shows the loading state, renders after a brief pause
+// so the user sees the feedback.
+function loadNextBatch(episodes) {
+  if (episodesLoading) return;
+  episodesLoading = true;
+
+  var btn = document.getElementById("episodes-load-more-btn");
+  btn.classList.add("is-loading");
+  btn.textContent = "Loading…";
+  btn.disabled = true;
+
+  // Brief pause so the loading state is visible and the grid feels alive
+  setTimeout(function () {
+    renderNextBatch(episodes);
+
+    btn.classList.remove("is-loading");
+    btn.textContent = "Load More Episodes";
+    btn.disabled = false;
+    episodesLoading = false;
+
+    // Re-check: if the button is still visible after this batch, trigger again
+    // (e.g. the user has a tall screen and the button never left the viewport)
+    var filtered = getFilteredEpisodes();
+    if (episodesVisible < filtered.length) {
+      var box = document.getElementById("episodes-load-more-box");
+      var rect = box.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 200) {
+        loadNextBatch(filtered);
+      }
+    }
+  }, 350);
+}
+
+// Build the season selector dropdown from the episodes we have.
+function buildSeasonSelector(episodes) {
+  var sel = document.getElementById("episodes-season-select");
+  var seasons = [];
+  for (var i = 0; i < episodes.length; i++) {
+    var s = episodes[i].season;
+    if (seasons.indexOf(s) === -1) seasons.push(s);
+  }
+  seasons.sort(function (a, b) { return a - b; });
+
+  sel.innerHTML = '<option value="all">All Seasons</option>';
+  for (var j = 0; j < seasons.length; j++) {
+    var opt = document.createElement("option");
+    opt.value = seasons[j];
+    opt.textContent = "Season " + seasons[j];
+    sel.appendChild(opt);
+  }
+  sel.value = "all";
+}
+
+// Get the current filtered episode list (season + search).
+function getFilteredEpisodes() {
+  var season = document.getElementById("episodes-season-select").value;
+  var term = document.getElementById("search-input").value.toLowerCase();
+
+  var filtered = allEpisodes;
+  if (season !== "all") {
+    var seasonNum = parseInt(season, 10);
+    filtered = filtered.filter(function (ep) { return ep.season === seasonNum; });
+  }
+  if (term) {
+    filtered = filtered.filter(function (ep) {
+      var nameHit = ep.name.toLowerCase().indexOf(term) !== -1;
+      var summaryHit = ep.summary ? ep.summary.toLowerCase().indexOf(term) !== -1 : false;
+      return nameHit || summaryHit;
+    });
+  }
+  return filtered;
+}
+
+// Render the first batch of episodes and reset the load-more counter.
 function renderEpisodes(episodes) {
-  const container = document.getElementById("episode-cards");
+  var container = document.getElementById("episode-cards");
   container.innerHTML = "";
+  episodesVisible = 0;
 
   if (episodes.length === 0) {
     container.innerHTML = '<p class="no-results">No episodes match.</p>';
+    updateEpisodeCount(0, allEpisodes.length);
+    document.getElementById("episodes-load-more-box").classList.add("hidden");
     return;
   }
 
-  for (const episode of episodes) {
-    const card = document.createElement("article");
+  updateEpisodeCount(episodes.length, allEpisodes.length);
+  renderNextBatch(episodes);
+  initLoadMore();
+}
+
+// Render one more batch of episodes (adds to the grid, doesn't clear it).
+function renderNextBatch(episodes) {
+  var container = document.getElementById("episode-cards");
+  var end = Math.min(episodesVisible + EPISODES_PER_BATCH, episodes.length);
+
+  for (var i = episodesVisible; i < end; i++) {
+    var episode = episodes[i];
+    var card = document.createElement("article");
     card.className = "episode-card";
-    // I store the episode id here so I can find this card later when the user jumps to it
     card.dataset.episodeId = episode.id;
 
-    // Format the season and episode number like S01E04
-    const seasonCode = String(episode.season).padStart(2, "0");
-    const episodeCode = String(episode.number).padStart(2, "0");
+    var seasonCode = String(episode.season).padStart(2, "0");
+    var episodeCode = String(episode.number).padStart(2, "0");
 
-    const title = document.createElement("h2");
-    title.textContent = `${episode.name} - S${seasonCode}E${episodeCode}`;
+    var title = document.createElement("h2");
+    title.textContent = episode.name + " - S" + seasonCode + "E" + episodeCode;
 
-    const image = document.createElement("img");
+    var image = document.createElement("img");
     image.src = episode.image ? episode.image.medium : "assets/images/no-image.png";
-    image.alt = `Still image from episode: ${episode.name}`;
+    image.alt = "Still image from episode: " + episode.name;
 
-    const summary = document.createElement("p");
+    var summary = document.createElement("p");
     summary.innerHTML = episode.summary || "No summary available.";
 
     card.appendChild(title);
@@ -388,44 +765,87 @@ function renderEpisodes(episodes) {
     card.appendChild(summary);
     container.appendChild(card);
   }
+
+  episodesVisible = end;
+
+  // Show or hide the load-more button
+  var loadBox = document.getElementById("episodes-load-more-box");
+  if (episodesVisible < episodes.length) {
+    loadBox.classList.remove("hidden");
+  } else {
+    loadBox.classList.add("hidden");
+  }
 }
 
-// Fill the "Jump to episode..." dropdown with all the episodes.
+// Run filters (season + search) and re-render from the top.
+function applyEpisodeFilters() {
+  var filtered = getFilteredEpisodes();
+  var season = document.getElementById("episodes-season-select").value;
+
+  // Rebuild the jump-to-episode dropdown with only episodes in scope
+  if (season !== "all") {
+    fillEpisodeSelector(filtered);
+  } else {
+    fillEpisodeSelector(allEpisodes);
+  }
+
+  renderEpisodes(filtered);
+  document.getElementById("episode-selector").value = "all";
+}
+
+// Fill the "Jump to episode..." dropdown from the given episode list.
 function fillEpisodeSelector(episodes) {
-  const selector = document.getElementById("episode-selector");
+  var selector = document.getElementById("episode-selector");
+  var currentVal = selector.value;
   selector.innerHTML = "";
 
-  const placeholder = document.createElement("option");
+  var placeholder = document.createElement("option");
   placeholder.value = "all";
   placeholder.textContent = "Jump to episode...";
   selector.appendChild(placeholder);
 
-  for (const episode of episodes) {
-    const option = document.createElement("option");
+  for (var i = 0; i < episodes.length; i++) {
+    var episode = episodes[i];
+    var option = document.createElement("option");
     option.value = episode.id;
-    const seasonCode = String(episode.season).padStart(2, "0");
-    const episodeCode = String(episode.number).padStart(2, "0");
-    option.textContent = `S${seasonCode}E${episodeCode} - ${episode.name}`;
+    var seasonCode = String(episode.season).padStart(2, "0");
+    var episodeCode = String(episode.number).padStart(2, "0");
+    option.textContent = "S" + seasonCode + "E" + episodeCode + " - " + episode.name;
     selector.appendChild(option);
   }
+
+  // Restore previous selection if it still exists after rebuild
+  selector.value = currentVal;
 }
 
 // When the user picks an episode from the dropdown, scroll to that card.
-// I don't filter anything — all episodes stay on the page, we just scroll down to the right one.
 function handleEpisodeJump(event) {
-  const id = event.target.value;
+  var id = event.target.value;
   if (id === "all") return;
 
-  // If the user was searching, clear that first so all episodes are visible
-  const searchInput = document.getElementById("search-input");
+  // If the user was searching or filtering, clear that first
+  var searchInput = document.getElementById("search-input");
   if (searchInput.value !== "") {
     searchInput.value = "";
-    renderEpisodes(allEpisodes);
-    updateEpisodeCount(allEpisodes.length, allEpisodes.length);
+    document.getElementById("episodes-season-select").value = "all";
+    applyEpisodeFilters();
   }
 
-  // Find the card with this episode id and scroll it into view
-  const card = document.querySelector(`.episode-card[data-episode-id="${id}"]`);
+  // The card might not be rendered yet if it's past the current batch.
+  // Expand the batch to include it.
+  var filtered = getFilteredEpisodes();
+  var idx = -1;
+  for (var i = 0; i < filtered.length; i++) {
+    if (filtered[i].id === parseInt(id, 10)) { idx = i; break; }
+  }
+  if (idx !== -1 && idx >= episodesVisible) {
+    // Render all batches up to this one
+    while (episodesVisible <= idx && episodesVisible < filtered.length) {
+      renderNextBatch(filtered);
+    }
+  }
+
+  var card = document.querySelector('.episode-card[data-episode-id="' + id + '"]');
   if (card) {
     card.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -433,20 +853,7 @@ function handleEpisodeJump(event) {
 
 // Filter episodes as the user types in the search box.
 function handleEpisodeSearch(event) {
-  const term = event.target.value.toLowerCase();
-
-  const matches = allEpisodes.filter((episode) => {
-    const nameHit = episode.name.toLowerCase().includes(term);
-    const summaryHit = episode.summary
-      ? episode.summary.toLowerCase().includes(term)
-      : false;
-    return nameHit || summaryHit;
-  });
-
-  renderEpisodes(matches);
-  updateEpisodeCount(matches.length, allEpisodes.length);
-
-  // Reset the dropdown while the user is searching
+  applyEpisodeFilters();
   document.getElementById("episode-selector").value = "all";
 }
 
