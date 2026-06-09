@@ -13,12 +13,11 @@ let allEpisodes = [];
 // I really had to find a way to group multiple genres into one row — just my UI preference :D
 const genreBuckets = [
   { label: "Drama",                 genres: ["Drama", "Legal", "Medical", "History", "War"] },
-  { label: "Comedy",                genres: ["Comedy"] },
+  { label: "Comedy",                genres: ["Comedy", "Music"] },
   { label: "Action & Adventure",    genres: ["Action", "Adventure", "Sports", "Espionage", "Western"] },
   { label: "Crime & Thriller",      genres: ["Crime", "Thriller", "Mystery", "Horror"] },
   { label: "Sci-Fi & Fantasy",      genres: ["Science-Fiction", "Fantasy", "Supernatural", "Anime"] },
   { label: "Romance",               genres: ["Romance"] },
-  { label: "Documentary & Reality", genres: ["Documentary", "Reality", "Sports", "Music", "Nature", "DIY", "Food", "Travel"] },
   { label: "Family & Kids",         genres: ["Children", "Family"] },
 ];
 
