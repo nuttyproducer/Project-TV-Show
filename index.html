@@ -80,7 +80,14 @@
               ← Back to shows
             </button>
           </div>
-          <div class="page-nav-right">
+        </nav>
+
+        <header class="episodes-header" id="episodes-header">
+          <div class="episodes-header-top">
+            <h2 id="episodes-show-title"></h2>
+            <select id="episodes-season-select" class="nav-select">
+              <option value="all">All Seasons</option>
+            </select>
             <select id="episode-selector" class="nav-select">
               <option value="all">Jump to episode...</option>
             </select>
@@ -88,16 +95,17 @@
               type="search"
               id="search-input"
               class="nav-input"
-              placeholder="Search show and summary..."
+              placeholder="Search episode title or summary..."
             />
             <span id="search-count" class="nav-count"></span>
           </div>
-        </nav>
-
-        <header class="episodes-header" id="episodes-header"></header>
+        </header>
 
         <section id="episode-list">
           <div id="episode-cards"></div>
+          <div id="episodes-load-more-box" class="episodes-load-more-box hidden">
+            <button id="episodes-load-more-btn" class="nav-button">Load More Episodes</button>
+          </div>
         </section>
       </main>
 
@@ -114,6 +122,8 @@
     </div>
     <!-- end #main-content -->
 
+    <!-- API keys and config — git-ignored, never committed -->
+    <script src="config.js"></script>
     <!-- Loads YOUR javascript code -->
     <script src="script.js"></script>
 
