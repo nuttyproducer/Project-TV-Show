@@ -239,6 +239,19 @@ body {
 
 .nav-select {
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' fill='none' stroke='%23e50914' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.nav-select:hover {
+  border-color: rgba(229, 9, 20, 0.5);
 }
 
 .nav-select option {
@@ -250,7 +263,7 @@ body {
 .nav-input:focus,
 .nav-select:focus {
   outline: none;
-  background: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.8);
   border-color: rgba(229, 9, 20, 0.6);
 }
 
@@ -385,12 +398,48 @@ body {
 
 /* ─── Episodes view header ──────────────────────────────────────── */
 .episodes-header {
-  padding: 30px 40px 10px;
+  padding: 20px 40px 10px;
+}
+
+.episodes-header-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .episodes-header h2 {
   font-size: 2rem;
   font-weight: 600;
+  margin: 0;
+}
+
+.episodes-header .nav-select {
+  min-width: 150px;
+}
+
+.episodes-header .nav-input {
+  max-width: 300px;
+}
+
+/* Load more button under episode grid */
+.episodes-load-more-box {
+  display: flex;
+  justify-content: center;
+  padding: 20px 40px 40px;
+}
+
+#episodes-load-more-btn.is-loading {
+  background: rgba(229, 9, 20, 0.15);
+  border-color: #e50914;
+  color: #e50914;
+  pointer-events: none;
+  animation: load-pulse 800ms ease-in-out infinite;
+}
+
+@keyframes load-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Episode grid layout */
@@ -438,6 +487,134 @@ body {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ─── Trailer hover popup (TV-scale, 16:9 trailer + summary) ────────── */
+.trailer-popup {
+  position: fixed;
+  z-index: 1000;
+  width: 1100px;
+  max-width: 95vw;
+  background: rgba(20, 20, 20, 0.97);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 72px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 280ms ease, visibility 280ms ease, transform 280ms ease;
+  pointer-events: none;
+  display: flex;
+}
+
+.trailer-popup.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Left — 16:9 trailer */
+.trailer-popup-left {
+  flex: 0 0 62%;
+  background: #000;
+}
+
+/* 16:9 aspect-ratio box */
+.trailer-popup-video-box {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #000;
+}
+
+.trailer-popup-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
+
+/* Right — show info */
+.trailer-popup-right {
+  flex: 1;
+  padding: 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.trailer-popup-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.trailer-popup-episodes-btn {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 200ms ease, transform 200ms ease;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+.trailer-popup-episodes-btn:hover {
+  background: rgba(229, 9, 20, 0.85);
+  border-color: transparent;
+  transform: scale(1.04);
+}
+
+/* Summary — clamped with a gradient fade-out for long text */
+.trailer-popup-summary {
+  font-size: 1.05rem;
+  color: #ccc;
+  line-height: 1.8;
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+.trailer-popup-summary p {
+  margin-bottom: 10px;
+}
+.trailer-popup-summary p:last-child {
+  margin-bottom: 0;
+}
+
+/* TV / large-screen scaling */
+@media (min-width: 1600px) {
+  .trailer-popup {
+    width: 1300px;
+  }
+  .trailer-popup-left {
+    flex: 0 0 65%;
+  }
+  .trailer-popup-title {
+    font-size: 2rem;
+  }
+  .trailer-popup-summary {
+    font-size: 1.15rem;
+    -webkit-line-clamp: 10;
+    line-clamp: 10;
+  }
 }
 
 /* Footer */
