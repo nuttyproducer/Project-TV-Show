@@ -92,7 +92,7 @@ body {
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center top;
+  background-position: 50% 10%;
   background-repeat: no-repeat;
   transition: opacity 400ms ease;
   opacity: 1;
