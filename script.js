@@ -18,7 +18,7 @@ const genreBuckets = [
   { label: "Crime & Thriller",      genres: ["Crime", "Thriller", "Mystery", "Horror"] },
   { label: "Sci-Fi & Fantasy",      genres: ["Science-Fiction", "Fantasy", "Supernatural", "Anime"] },
   { label: "Romance",               genres: ["Romance"] },
-  { label: "Documentary & Reality", genres: ["Documentary", "Reality", "Music", "Nature", "DIY", "Food", "Travel"] },
+  { label: "Documentary & Reality", genres: ["Documentary", "Reality", "Sports", "Music", "Nature", "DIY", "Food", "Travel"] },
   { label: "Family & Kids",         genres: ["Children", "Family"] },
 ];
 
