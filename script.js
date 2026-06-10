@@ -315,12 +315,12 @@ function createShowCard(show) {
     var cardEl = card;
     // Start fetching the trailer ID right away — don't wait for the timer.
     // If it's in the cache this returns instantly; otherwise the API call
-    // runs in parallel with the 600ms delay.
+    // runs in parallel with the 800ms delay.
     preloadTrailerForShow(show);
 
     hoverTimer = setTimeout(function () {
       openTrailerPopup(show, cardEl);
-    }, 600);
+    }, 1200);
   });
 
   card.addEventListener("mouseleave", () => {
@@ -338,6 +338,7 @@ function createShowCard(show) {
 // It uses the YouTube Data API v3 to find the right trailer, then embeds it directly.
 // Results are cached so each show is searched only once per session.
 const trailerCache = {};        // key = show name, value = YouTube video ID (or null)
+const castCache = {};           // key = show id, value = array of actor names
 let trailerPopupShow = null;   // which show the popup is currently showing
 let trailerCloseTimer = null;  // timer for delayed close
 
@@ -392,8 +393,25 @@ function getEmbedUrl(videoId) {
   );
 }
 
+// Fetch the main cast for a show (top 5, cached per show id).
+function fetchCast(showId) {
+  if (showId in castCache) {
+    return Promise.resolve(castCache[showId]);
+  }
+  return fetchWithCache("https://api.tvmaze.com/shows/" + showId + "/cast")
+    .then(function (people) {
+      var names = people.slice(0, 5).map(function (p) { return p.person.name; });
+      castCache[showId] = names;
+      return names;
+    })
+    .catch(function () {
+      castCache[showId] = [];
+      return [];
+    });
+}
+
 // Kick off the API fetch + iframe preload the moment the user hovers a card.
-// Runs in parallel with the 600ms delay — by the time the popup opens,
+// Runs in parallel with the 800ms delay — by the time the popup opens,
 // the iframe is already buffering the video.
 function preloadTrailerForShow(show) {
   fetchTrailerId(show.name).then(function (videoId) {
@@ -442,6 +460,14 @@ function getTrailerPopup() {
   title.className = "trailer-popup-title";
   right.appendChild(title);
 
+  var rating = document.createElement("div");
+  rating.className = "trailer-popup-rating";
+  right.appendChild(rating);
+
+  var cast = document.createElement("div");
+  cast.className = "trailer-popup-cast";
+  right.appendChild(cast);
+
   var summary = document.createElement("div");
   summary.className = "trailer-popup-summary";
   right.appendChild(summary);
@@ -487,6 +513,25 @@ function openTrailerPopup(show, card) {
 
   // Fill in the show info on the right side
   popup.querySelector(".trailer-popup-title").textContent = show.name;
+
+  // Rating right under the title
+  var avg = show.rating && show.rating.average ? show.rating.average : null;
+  var ratingEl = popup.querySelector(".trailer-popup-rating");
+  ratingEl.textContent = avg ? "★ " + avg : "";
+  ratingEl.style.display = avg ? "" : "none";
+
+  // Cast — fetched + cached
+  var castEl = popup.querySelector(".trailer-popup-cast");
+  castEl.textContent = "Loading cast…";
+  fetchCast(show.id).then(function (names) {
+    if (trailerPopupShow !== show) return;
+    if (names.length) {
+      castEl.textContent = names.join(" · ");
+    } else {
+      castEl.textContent = "";
+    }
+  });
+
   popup.querySelector(".trailer-popup-summary").innerHTML =
     show.summary || "<p>No summary available.</p>";
 

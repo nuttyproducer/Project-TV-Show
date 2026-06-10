@@ -557,6 +557,20 @@ body {
   flex-shrink: 0;
 }
 
+.trailer-popup-rating {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ffcb3c;
+  flex-shrink: 0;
+}
+
+.trailer-popup-cast {
+  font-size: 0.9rem;
+  color: #aaa;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
 .trailer-popup-episodes-btn {
   align-self: flex-start;
   background: rgba(255, 255, 255, 0.08);
